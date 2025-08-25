@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 export async function get() {
     try {
         const reservas = await prisma.reserva.findMany({
-            include: { hotel: true, room: true }
+            include: { hotel: true, quarto: true }
         })
         return NextResponse.json(reservas)
     } catch (error) {

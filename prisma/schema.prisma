@@ -18,6 +18,7 @@ model Hotel {
   nome     String
   endereco String
   quartos  Quarto[]
+  reservas Reserva[]
 }
 
 model Quarto{
@@ -40,6 +41,8 @@ model Reserva {
   dataFim     DateTime
   quartoId    Int
   quarto      Quarto @relation(fields: [quartoId], references: [id])
+  hotelId     Int
+  hotel       Hotel  @relation(fields: [hotelId], references: [id])
 }
 
 

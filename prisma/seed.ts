@@ -35,7 +35,8 @@ async function main(){
                 email: faker.internet.email(),
                 dataInicio,
                 dataFim,
-                quartoId: quarto.id
+                quartoId: quarto.id,
+                hotelId: hotel.id
             }
         })
     }
