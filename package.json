@@ -61,5 +61,10 @@
   "bugs": {
     "url": "https://github.com/Lucas-gabReader/hotel_3bago/issues"
   },
-  "homepage": "https://github.com/Lucas-gabReader/hotel_3bago#readme"
+  "homepage": "https://github.com/Lucas-gabReader/hotel_3bago#readme",
+
+  "engines": {
+  "node": "18.x"
+}
+
 }
