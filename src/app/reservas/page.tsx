@@ -11,7 +11,7 @@ type Quarto = {
   hotelNome?: string
 }
 
-type Reserva = {
+type Reserva = {    
   id: number
   nomeHospede: string
   quartoId: number
