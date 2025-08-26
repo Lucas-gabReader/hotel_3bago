@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import {prisma} from "@/lib/prisma";
 import { Quando } from "next/font/google";
 
 export async function GET(_: Request, { params }: {params: {id: string }}) {
