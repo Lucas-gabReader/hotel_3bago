@@ -33,12 +33,24 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
 
 export async function  DELETE(_: Request, context: { params: Promise<{id: string }>}) {
     const { id } = await context.params;
- try {
-    await prisma.quarto.delete({
-        where: { id: Number(id)}
-    })
-    return NextResponse.json({ message: 'Quarto removido com sucesso'})
- } catch  {
-    return NextResponse.json({ error: 'Erro ao remover quarto' }, { status: 500 })
- }   
+    try {
+        // Check if quarto has any related reservas
+        const reservasCount = await prisma.reserva.count({
+            where: { quartoId: Number(id) }
+        });
+        
+        if (reservasCount > 0) {
+            return NextResponse.json({ 
+                error: 'Não é possível remover o quarto porque existem reservas associadas a ele. Remova primeiro as reservas relacionadas.' 
+            }, { status: 400 });
+        }
+        
+        await prisma.quarto.delete({
+            where: { id: Number(id)}
+        })
+        return NextResponse.json({ message: 'Quarto removido com sucesso'})
+    } catch (error) {
+        console.error('Error deleting quarto:', error);
+        return NextResponse.json({ error: 'Erro ao remover quarto' }, { status: 500 })
+    }   
 }
