@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import {prisma} from "@/lib/prisma";
-import { Quando } from "next/font/google";
 
-export async function GET(_: Request, { params }: {params: {id: string }}) {
+export async function GET(_: Request, context: { params: Promise<{id: string }>}) {
+    const { id } = await context.params;
     try {
         const quarto = await prisma.quarto.findUnique({
-            where: { id: Number(params.id) },
+            where: { id: Number(id) },
             include: { hotel: true }
         })
 
@@ -17,11 +17,12 @@ export async function GET(_: Request, { params }: {params: {id: string }}) {
     }    
 }
 
-export async function PUT(req: Request, { params }: {params: { id: string}}) {
+export async function PUT(req: Request, context: { params: Promise<{ id: string }>}) {
+    const { id } = await context.params;
     try {
         const data = await req.json()
         const updated = await prisma.quarto.update({
-            where: { id: Number(params.id)},
+            where: { id: Number(id)},
             data
         })
         return NextResponse.json(updated)
@@ -30,10 +31,11 @@ export async function PUT(req: Request, { params }: {params: { id: string}}) {
     }
 }
 
-export async function  DELETE(_: Request, { params }: { params: {id: string}}) {
+export async function  DELETE(_: Request, context: { params: Promise<{id: string }>}) {
+    const { id } = await context.params;
  try {
     await prisma.quarto.delete({
-        where: { id: Number(params.id)}
+        where: { id: Number(id)}
     })
     return NextResponse.json({ message: 'Quarto removido com sucesso'})
  } catch  {

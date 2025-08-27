@@ -16,17 +16,16 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@tailwindcss/vite": "^4.1.12",
     "@types/npm": "^7.19.3",
-    "button": "^1.1.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "framer-motion": "^12.23.12",
     "install-types": "^2.0.1",
     "lucide-react": "^0.541.0",
     "next": "15.4.6",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "tailwind-merge": "^3.3.1",
-    "tailwind-variants": "^3.1.0"
+    "tailwind-variants": "^3.1.0",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -57,10 +56,9 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "bugs": {
     "url": "https://github.com/Lucas-gabReader/hotel_3bago/issues"
   },
   "homepage": "https://github.com/Lucas-gabReader/hotel_3bago#readme"
-
 }

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import {prisma} from "@/lib/prisma";
 
-export async function get() {
+export async function GET() {
     try {
         const reservas = await prisma.reserva.findMany({
             include: { hotel: true, quarto: true }

@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server'
 import {prisma} from '@/lib/prisma'
-import { renderToString } from 'react-dom/server'
 
-export async function Get() {
+export async function GET() {
    try {
     const hotels = await prisma.hotel.findMany({
         include: { quartos: true }
@@ -13,17 +12,15 @@ export async function Get() {
     }
 }
 
-    export async function POST(req: Request) {
-        try {
-            const data = await req.json()
-            await prisma.hotel.create({
-                data
-            })
-            
-        } catch (error) {
-            return NextResponse.json({ error: 'Erro ao criar hotel'}, {status: 500})
-            
-        }
-        
+export async function POST(req: Request) {
+    try {
+        const data = await req.json()
+        const hotel = await prisma.hotel.create({
+            data
+        })
+        return NextResponse.json(hotel, { status: 201 })
+    } catch (error) {
+        return NextResponse.json({ error: 'Erro ao criar hotel'}, {status: 500})
     }
+}
 

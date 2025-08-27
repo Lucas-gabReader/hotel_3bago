@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import {prisma} from "@/lib/prisma";
 
-export async function GET(_: Request, { params }: { params: {id: string}}) {
+export async function GET(_: Request, context: { params: Promise<{id: string}>}) {
+    const { id } = await context.params;
     try {
         const reserva = await prisma.reserva.findUnique({
-            where: { id: Number(params.id) },
+            where: { id: Number(id) },
             include: { hotel: true, quarto: true}
         })
 
@@ -12,15 +13,16 @@ export async function GET(_: Request, { params }: { params: {id: string}}) {
     
         return NextResponse.json(reserva)
         } catch {
-        return NextResponse.json({ error: 'Erro ao buscar reserva'}, { status: 404})
+        return NextResponse.json({ error: 'Erro ao buscar reserva'}, { status: 500})
     }
 }
 
-export async function PUT(req: Request, { params }: { params: {id: string}}) {
+export async function PUT(req: Request, context: { params: Promise<{id: string}>}) {
+    const { id } = await context.params;
     try {
         const data = await req.json()
         const update = await prisma.reserva.update({
-            where: { id: Number(params.id)},
+            where: { id: Number(id)},
             data
         })
         return NextResponse.json(update)
@@ -29,10 +31,11 @@ export async function PUT(req: Request, { params }: { params: {id: string}}) {
     }
 }
 
-export async function  DELETE(_: Request, { params } : { params: {id: String} }) {
+export async function  DELETE(_: Request, context: { params: Promise<{id: string}>}) {
+    const { id } = await context.params;
    try {
     await prisma.reserva.delete({
-        where: { id: Number(params.id)}
+        where: { id: Number(id)}
     })
     return NextResponse.json({ message: 'Reserva removida com sucesso'})
    } catch {
