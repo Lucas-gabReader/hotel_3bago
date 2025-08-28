@@ -25,6 +25,8 @@ export default function ReservasPage() {
 
   const [nomeHospede, setNomeHospede] = useState("")
   const [quartoId, setQuartoId] = useState<number | null>(null)
+  const [dataInicio, setDataInicio] = useState<string>("")
+  const [dataFim, setDataFim] = useState<string>("")
 
   const [editId, setEditId] = useState<number | null>(null)
   const [editNomeHospede, setEditNomeHospede] = useState("")
@@ -36,16 +38,21 @@ export default function ReservasPage() {
   }, [])
 
   async function handleAddReserva() {
-    if (!nomeHospede || !quartoId) return alert("Preencha todos os campos!")
+    if (!nomeHospede || !quartoId || !dataInicio || !dataFim) return alert("Preencha todos os campos!")
     const res = await fetch("/api/reservas", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nomeHospede, quartoId }),
+      body: JSON.stringify({ 
+          nomeHospede, 
+          quartoId, 
+          dataInicio: new Date(dataInicio).toISOString(), 
+          dataFim: new Date(dataFim).toISOString() 
+      }),
     })
     if (res.ok) {
       const novo = await res.json()
       setReservas([...reservas, { ...novo, quartoNumero: quartos.find(q => q.id === quartoId)?.numero }])
-      setNomeHospede(""); setQuartoId(null)
+      setNomeHospede(""); setQuartoId(null); setDataInicio(""); setDataFim("");
     } else alert("Erro ao adicionar reserva.")
   }
 
@@ -59,13 +66,21 @@ export default function ReservasPage() {
     if (res.ok) {
       setReservas(reservas.map(r => r.id === id ? { ...r, nomeHospede: editNomeHospede, quartoId: editQuartoId, quartoNumero: quartos.find(q => q.id === editQuartoId)?.numero } : r))
       setEditId(null)
+    } else {
+      const errorData = await res.json()
+      alert(errorData.error || "Erro ao atualizar reserva")
     }
   }
 
   async function handleDeleteReserva(id: number) {
     if (!confirm("Deseja realmente excluir esta reserva?")) return
     const res = await fetch(`/api/reservas/${id}`, { method: "DELETE" })
-    if (res.ok) setReservas(reservas.filter(r => r.id !== id))
+    if (res.ok) {
+      setReservas(reservas.filter(r => r.id !== id))
+    } else {
+      const errorData = await res.json()
+      alert(errorData.error || "Erro ao excluir reserva")
+    }
   }
 
   return (
@@ -74,12 +89,14 @@ export default function ReservasPage() {
         <CardHeader><CardTitle>Adicionar Reserva</CardTitle></CardHeader>
         <CardContent className="space-y-2">
           <Input placeholder="Nome do hóspede" value={nomeHospede} onChange={e => setNomeHospede(e.target.value)} />
-          <Select onValueChange={val => setQuartoId(Number(val))} value={quartoId?.toString() || ""}>
+          <Select onValueChange={val => setQuartoId(val ? Number(val) : null)} value={quartoId?.toString() || ""}>
             <SelectTrigger><SelectValue placeholder="Escolha o quarto" /></SelectTrigger>
             <SelectContent>
               {quartos.map(q => <SelectItem key={q.id} value={q.id.toString()}>{q.numero} - {q.hotelNome}</SelectItem>)}
             </SelectContent>
           </Select>
+          <Input type="date" placeholder="Data de Início" value={dataInicio} onChange={e => setDataInicio(e.target.value)} />
+          <Input type="date" placeholder="Data de Fim" value={dataFim} onChange={e => setDataFim(e.target.value)} />
           <Button onClick={handleAddReserva}>Adicionar</Button>
         </CardContent>
       </Card>
@@ -104,7 +121,7 @@ export default function ReservasPage() {
                   <td className="border-b p-2">{editId === r.id ? <Input value={editNomeHospede} onChange={e => setEditNomeHospede(e.target.value)} /> : r.nomeHospede}</td>
                   <td className="border-b p-2">
                     {editId === r.id ?
-                      <Select onValueChange={val => setEditQuartoId(Number(val))} value={editQuartoId?.toString() || ""}>
+                      <Select onValueChange={val => setEditQuartoId(val ? Number(val) : null)} value={editQuartoId?.toString() || ""}>
                         <SelectTrigger><SelectValue placeholder="Escolha o quarto" /></SelectTrigger>
                         <SelectContent>
                           {quartos.map(q => <SelectItem key={q.id} value={q.id.toString()}>{q.numero} - {q.hotelNome}</SelectItem>)}

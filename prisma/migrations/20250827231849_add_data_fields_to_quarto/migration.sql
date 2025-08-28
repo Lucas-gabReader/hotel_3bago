@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "public"."Quarto" 
+ADD COLUMN "dataFim" TIMESTAMP(3) DEFAULT NULL,
+ADD COLUMN "dataInicio" TIMESTAMP(3) DEFAULT NULL;

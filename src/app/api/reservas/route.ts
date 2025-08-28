@@ -1,27 +1,41 @@
 import { NextResponse } from "next/server";
-import {prisma} from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
     try {
         const reservas = await prisma.reserva.findMany({
             include: { hotel: true, quarto: true }
-        })
-        return NextResponse.json(reservas)
+        });
+        return NextResponse.json(reservas);
     } catch (error) {
-        return NextResponse.json({ error: 'Erro ao buscar reservas'}, {status:500} )
-        
+        return NextResponse.json({ error: 'Erro ao buscar reservas' }, { status: 500 });
     } 
 }
 
 export async function POST(req: Request) {
     try {
-        const data = await req.json()
-        await prisma.reserva.create({
-            data
-        })
-    } catch (error) {
-        return NextResponse.json({ error: 'Erro ao criar reserva' }, { status: 500 })
+        const requestData = await req.json();
+        console.log('POST request data:', requestData);
         
+        const { nomeHospede, email, dataInicio, dataFim, quartoId, hotelId } = requestData;
+        
+        const createData: any = {
+            cliente: nomeHospede,
+            quartoId,
+            dataInicio,
+            dataFim
+        };
+        
+        // Only include fields that are provided
+        if (email !== undefined) createData.email = email;
+        if (hotelId !== undefined) createData.hotelId = hotelId;
+        
+        const reserva = await prisma.reserva.create({
+            data: createData
+        });
+        return NextResponse.json(reserva, { status: 201 });
+    } catch (error) {
+        console.error('Erro ao criar reserva:', error);
+        return NextResponse.json({ error: 'Erro ao criar reserva' }, { status: 500 });
     }
-    
 }

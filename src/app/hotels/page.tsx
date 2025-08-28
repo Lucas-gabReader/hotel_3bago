@@ -53,7 +53,12 @@ export default function HotelsPage() {
   async function handleDeleteHotel(id: number) {
     if (!confirm("Deseja realmente excluir este hotel?")) return
     const res = await fetch(`/api/hotels/${id}`, { method: "DELETE" })
-    if (res.ok) setHotels(hotels.filter(h => h.id !== id))
+    if (res.ok) {
+      setHotels(hotels.filter(h => h.id !== id))
+    } else {
+      const errorData = await res.json()
+      alert(errorData.error || "Erro ao excluir hotel")
+    }
   }
 
   return (

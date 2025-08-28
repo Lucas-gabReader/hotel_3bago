@@ -15,32 +15,34 @@ async function main(){
                 endereco: faker.location.streetAddress({ useFullAddress: true}),
             }
         })
-    for (let q = 0; q < quartosPorHotel; q++) {
-        const quarto = await  prisma.quarto.create({
-            data: {
-                numero: `${q + 101}`,
-                tipo: faker.helpers.arrayElement(['Standard', 'Luxo', 'Master', 'Premium']),
-                preco: faker.number.float({ min: 100, max:500, fractionDigits: 2}),
-                hotelId: hotel.id
-            }
-        })
+        for (let q = 0; q < quartosPorHotel; q++) {
+            const dataInicio = faker.date.soon({ days: 30 });
+            const dataFim = faker.date.soon({ days: 40, refDate: dataInicio });
 
-    for (let r = 0; r < reservasPorHotel; r++) {
-        const dataInicio = faker.date.soon({ days: 30})
-        const dataFim = faker.date.soon({ days: 40, refDate: dataInicio})
+            const quarto = await prisma.quarto.create({
+                data: {
+                    numero: `${q + 101}`,
+                    tipo: faker.helpers.arrayElement(['Standard', 'Luxo', 'Master', 'Premium']),
+                    preco: faker.number.float({ min: 100, max:500, fractionDigits: 2}),
+                    hotelId: hotel.id,
+                    dataInicio, // Add start date
+                    dataFim // Add end date
+                }
+            })
 
-        await prisma.reserva.create({
-            data: {
-                cliente: faker.person.fullName(),
-                email: faker.internet.email(),
-                dataInicio,
-                dataFim,
-                quartoId: quarto.id,
-                hotelId: hotel.id
+            for (let r = 0; r < reservasPorHotel; r++) {
+                await prisma.reserva.create({
+                    data: {
+                        cliente: faker.person.fullName(),
+                        email: faker.internet.email(),
+                        dataInicio,
+                        dataFim,
+                        quartoId: quarto.id,
+                        hotelId: hotel.id
+                    }
+                })
             }
-        })
-    }
-    }
+        }
     }
     
     console.log(`✅ seed concluido: ${totalHoteis} hotéis, ${totalHoteis * quartosPorHotel} quartos e ${totalHoteis * quartosPorHotel * reservasPorHotel} reservas criadas!`)

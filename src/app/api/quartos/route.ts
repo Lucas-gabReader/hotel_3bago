@@ -1,26 +1,29 @@
 import { NextResponse } from "next/server";
-import {prisma} from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
     try {
         const rooms = await prisma.quarto.findMany({
-            include: { hotel:true }
-        })
-        return NextResponse.json(rooms)
+            include: { hotel: true }
+        });
+        return NextResponse.json(rooms);
     } catch (error) {
-        return NextResponse.json({error: 'Erro ao buscar quartos'}, {status: 500})
-        
+        return NextResponse.json({ error: 'Erro ao buscar quartos' }, { status: 500 });
     }
 }
 
 export async function POST(req: Request) {
     try {
-        const data = await req.json()
-        await prisma.quarto.create({
-            data
-        })
+        const data = await req.json();
+        const quarto = await prisma.quarto.create({
+            data: {
+                ...data,
+                createdAt: new Date() // Set createdAt to the current date
+            }
+        });
+        return NextResponse.json(quarto, { status: 201 });
     } catch (error) {
-        return NextResponse.json({error:'Erro ao criar'}, {status: 500})
-        
+        console.error('Erro ao criar quarto:', error);
+        return NextResponse.json({ error: 'Erro ao criar quarto' }, { status: 500 });
     }
 }

@@ -29,6 +29,8 @@ model Quarto{
   hotelId   Int
   hotel     Hotel @relation(fields: [hotelId], references: [id])
   reservas  Reserva[]
+  dataInicio DateTime // Add start date
+  dataFim    DateTime // Add end date
 
 
 }

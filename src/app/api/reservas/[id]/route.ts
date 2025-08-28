@@ -20,13 +20,29 @@ export async function GET(_: Request, context: { params: Promise<{id: string}>})
 export async function PUT(req: Request, context: { params: Promise<{id: string}>}) {
     const { id } = await context.params;
     try {
-        const data = await req.json()
+        const requestData = await req.json()
+        console.log('PUT request data:', requestData)
+        
+        const { nomeHospede, email, dataInicio, dataFim, quartoId, hotelId } = requestData
+        
+        const updateData: any = {
+            cliente: nomeHospede,
+            quartoId
+        }
+        
+        // Only include fields that are provided
+        if (email !== undefined) updateData.email = email
+        if (dataInicio !== undefined) updateData.dataInicio = dataInicio
+        if (dataFim !== undefined) updateData.dataFim = dataFim
+        if (hotelId !== undefined) updateData.hotelId = hotelId
+        
         const update = await prisma.reserva.update({
             where: { id: Number(id)},
-            data
+            data: updateData
         })
         return NextResponse.json(update)
-    } catch {
+    } catch (error) {
+        console.error('Erro ao atualizar reserva:', error)
         return NextResponse.json({ error: 'Erro ao atualizar reserva' }, { status: 500})
     }
 }

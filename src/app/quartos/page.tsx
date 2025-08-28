@@ -8,45 +8,48 @@ import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } 
 type Hotel = {
     id: number
     nome: string
-  }
+}
   
-  type Quarto = {
+type Quarto = {
     id: number
     numero: string
     tipo: string
     hotelId: number
     hotelNome?: string
     createdAt: string
-  }
+}
   
-  export default function QuartosPage() {
+export default function QuartosPage() {
     const [hotels, setHotels] = useState<Hotel[]>([])
     const [quartos, setQuartos] = useState<Quarto[]>([])
-  
+
     const [numero, setNumero] = useState("")
     const [tipo, setTipo] = useState("")
     const [hotelId, setHotelId] = useState<number | null>(null)
-  
+    const [preco, setPreco] = useState<number | null>(null) // Add state for price
+
     const [editId, setEditId] = useState<number | null>(null)
     const [editNumero, setEditNumero] = useState("")
     const [editTipo, setEditTipo] = useState("")
     const [editHotelId, setEditHotelId] = useState<number | null>(null)
-  
+    const [dataInicio, setDataInicio] = useState<string>("") // Add state for start date
+    const [dataFim, setDataFim] = useState<string>("") // Add state for end date
+
     // carregar hotéis e quartos
     useEffect(() => {
       fetch("/api/hotels").then(res => res.json()).then(setHotels)
       fetch("/api/quartos").then(res => res.json()).then(setQuartos)
     }, [])
-  
+
     async function handleAddQuarto() {
       if (!numero || !tipo || !hotelId) return alert("Preencha todos os campos!")
-  
+
       const res = await fetch("/api/quartos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ numero, tipo, hotelId }),
+        body: JSON.stringify({ numero, tipo, hotelId, preco: preco || 0, dataInicio, dataFim }), // Include dataInicio and dataFim
       })
-  
+
       if (res.ok) {
         const novo = await res.json()
         setQuartos([...quartos, { ...novo, hotelNome: hotels.find(h => h.id === hotelId)?.nome }])
@@ -55,7 +58,7 @@ type Hotel = {
         alert("Erro ao adicionar quarto.")
       }
     }
-  
+
     async function handleUpdateQuarto(id: number) {
       if (!editNumero || !editTipo || !editHotelId) return alert("Preencha todos os campos!")
       const res = await fetch(`/api/quartos/${id}`, {
@@ -68,13 +71,18 @@ type Hotel = {
         setEditId(null)
       }
     }
-  
+
     async function handleDeleteQuarto(id: number) {
       if (!confirm("Deseja realmente excluir este quarto?")) return
       const res = await fetch(`/api/quartos/${id}`, { method: "DELETE" })
-      if (res.ok) setQuartos(quartos.filter(q => q.id !== id))
+      if (res.ok) {
+        setQuartos(quartos.filter(q => q.id !== id))
+      } else {
+        const errorData = await res.json()
+        alert(errorData.error || "Erro ao excluir quarto")
+      }
     }
-  
+
     return (
       <div className="p-6 space-y-6">
         <Card className="max-w-md">
@@ -88,10 +96,13 @@ type Hotel = {
                 {hotels.map(h => <SelectItem key={h.id} value={h.id.toString()}>{h.nome}</SelectItem>)}
               </SelectContent>
             </Select>
+            <Input placeholder="Preço" type="number" value={preco || ''} onChange={e => setPreco(Number(e.target.value))} />
+            <Input placeholder="Data de Início" type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} />
+            <Input placeholder="Data de Fim" type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} />
             <Button onClick={handleAddQuarto}>Adicionar</Button>
           </CardContent>
         </Card>
-  
+
         <Card>
           <CardHeader><CardTitle>Quartos Cadastrados</CardTitle></CardHeader>
           <CardContent>
@@ -123,7 +134,7 @@ type Hotel = {
                         : q.hotelNome
                       }
                     </td>
-                    <td className="border-b p-2">{new Date(q.createdAt).toLocaleDateString()}</td>
+                    <td className="border-b p-2">{new Date(q.createdAt).toLocaleDateString("pt-BR") || "Data Inválida"}</td>
                     <td className="border-b p-2 space-x-2">
                       {editId === q.id ?
                         <Button onClick={() => handleUpdateQuarto(q.id)}>Salvar</Button>
