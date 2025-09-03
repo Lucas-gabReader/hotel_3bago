@@ -4,6 +4,8 @@ import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { useAuth } from "@/context/AuthContext"
+import { useRouter } from "next/navigation"
 
 type Hotel = {
   id: number
@@ -13,6 +15,8 @@ type Hotel = {
 }
 
 export default function HotelsPage() {
+  const { user, loading } = useAuth()
+  const router = useRouter()
   const [hotels, setHotels] = useState<Hotel[]>([])
   const [nome, setNome] = useState("")
   const [endereco, setEndereco] = useState("")
@@ -21,8 +25,14 @@ export default function HotelsPage() {
   const [editEndereco, setEditEndereco] = useState("")
 
   useEffect(() => {
-    fetch("/api/hotels").then(res => res.json()).then(setHotels)
-  }, [])
+    if (!loading) {
+      if (!user || user.role !== "ADMIN") {
+        router.push("/")
+        return
+      }
+      fetch("/api/hotels").then(res => res.json()).then(setHotels)
+    }
+  }, [user, loading, router])
 
   async function handleAddHotel() {
     if (!nome || !endereco) return alert("Preencha todos os campos!")
@@ -59,6 +69,29 @@ export default function HotelsPage() {
       const errorData = await res.json()
       alert(errorData.error || "Erro ao excluir hotel")
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <p>Carregando...</p>
+      </div>
+    )
+  }
+
+  if (!user || user.role !== "ADMIN") {
+    return (
+      <div className="p-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Acesso Negado</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>Você precisa ser um administrador para acessar esta página.</p>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return (

@@ -4,6 +4,8 @@ import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/input"
+import { useAuth } from "@/context/AuthContext"
+import { useRouter } from "next/navigation"
 
 type Hotel = {
     id: number
@@ -20,26 +22,46 @@ type Quarto = {
 }
   
 export default function QuartosPage() {
+  const { user, loading } = useAuth()
+  const router = useRouter()
     const [hotels, setHotels] = useState<Hotel[]>([])
     const [quartos, setQuartos] = useState<Quarto[]>([])
 
     const [numero, setNumero] = useState("")
     const [tipo, setTipo] = useState("")
     const [hotelId, setHotelId] = useState<number | null>(null)
+
+    // Persist selected hotelId in localStorage to keep selection on page revisit
+    useEffect(() => {
+      const savedHotelId = localStorage.getItem("selectedHotelId");
+      if (savedHotelId) {
+        setHotelId(Number(savedHotelId));
+      }
+    }, []);
+
+    useEffect(() => {
+      if (hotelId !== null) {
+        localStorage.setItem("selectedHotelId", hotelId.toString());
+      }
+    }, [hotelId]);
     const [preco, setPreco] = useState<number | null>(null) // Add state for price
 
     const [editId, setEditId] = useState<number | null>(null)
     const [editNumero, setEditNumero] = useState("")
     const [editTipo, setEditTipo] = useState("")
     const [editHotelId, setEditHotelId] = useState<number | null>(null)
-    const [dataInicio, setDataInicio] = useState<string>("") // Add state for start date
-    const [dataFim, setDataFim] = useState<string>("") // Add state for end date
 
     // carregar hotéis e quartos
     useEffect(() => {
-      fetch("/api/hotels").then(res => res.json()).then(setHotels)
-      fetch("/api/quartos").then(res => res.json()).then(setQuartos)
-    }, [])
+      if (!loading) {
+        if (!user || user.role !== "ADMIN") {
+          router.push("/")
+          return
+        }
+        fetch("/api/hotels").then(res => res.json()).then(setHotels)
+        fetch("/api/quartos").then(res => res.json()).then(setQuartos)
+      }
+    }, [user, loading, router])
 
     async function handleAddQuarto() {
       if (!numero || !tipo || !hotelId) return alert("Preencha todos os campos!")
@@ -47,13 +69,13 @@ export default function QuartosPage() {
       const res = await fetch("/api/quartos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ numero, tipo, hotelId, preco: preco || 0, dataInicio, dataFim }), // Include dataInicio and dataFim
+        body: JSON.stringify({ numero, tipo, hotelId, preco: preco || 0 }), // Removed dataInicio and dataFim
       })
 
       if (res.ok) {
         const novo = await res.json()
-        setQuartos([...quartos, { ...novo, hotelNome: hotels.find(h => h.id === hotelId)?.nome }])
-        setNumero(""); setTipo(""); setHotelId(null)
+        setQuartos([...quartos, { ...novo, hotelNome: hotels.find(h => h.id === hotelId)?.nome, preco: novo.preco }])
+        setNumero(""); setTipo(""); setHotelId(null); setPreco(null)
       } else {
         alert("Erro ao adicionar quarto.")
       }
@@ -83,6 +105,29 @@ export default function QuartosPage() {
       }
     }
 
+    if (loading) {
+      return (
+        <div className="p-6">
+          <p>Carregando...</p>
+        </div>
+      )
+    }
+
+    if (!user || user.role !== "ADMIN") {
+      return (
+        <div className="p-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Acesso Negado</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>Você precisa ser um administrador para acessar esta página.</p>
+            </CardContent>
+          </Card>
+        </div>
+      )
+    }
+
     return (
       <div className="p-6 space-y-6">
         <Card className="max-w-md">
@@ -97,8 +142,6 @@ export default function QuartosPage() {
               </SelectContent>
             </Select>
             <Input placeholder="Preço" type="number" value={preco || ''} onChange={e => setPreco(Number(e.target.value))} />
-            <Input placeholder="Data de Início" type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} />
-            <Input placeholder="Data de Fim" type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} />
             <Button onClick={handleAddQuarto}>Adicionar</Button>
           </CardContent>
         </Card>

@@ -11,12 +11,13 @@ type Quarto = {
   hotelNome?: string
 }
 
-type Reserva = {    
+type Reserva = {
   id: number
   nomeHospede: string
   quartoId: number
   quartoNumero?: string
   createdAt: string
+  stayDuration?: number
 }
 
 export default function ReservasPage() {
@@ -46,7 +47,8 @@ export default function ReservasPage() {
           nomeHospede, 
           quartoId, 
           dataInicio: new Date(dataInicio).toISOString(), 
-          dataFim: new Date(dataFim).toISOString() 
+          dataFim: new Date(dataFim).toISOString(),
+          email: "" // Add empty email to avoid missing field error
       }),
     })
     if (res.ok) {
@@ -110,6 +112,7 @@ export default function ReservasPage() {
                 <th className="border-b p-2">ID</th>
                 <th className="border-b p-2">Hóspede</th>
                 <th className="border-b p-2">Quarto</th>
+                <th className="border-b p-2">Duração (dias)</th>
                 <th className="border-b p-2">Criado em</th>
                 <th className="border-b p-2">Ações</th>
               </tr>
@@ -130,6 +133,7 @@ export default function ReservasPage() {
                       : r.quartoNumero
                     }
                   </td>
+                  <td className="border-b p-2">{r.stayDuration}</td>
                   <td className="border-b p-2">{new Date(r.createdAt).toLocaleDateString()}</td>
                   <td className="border-b p-2 space-x-2">
                     {editId === r.id ?

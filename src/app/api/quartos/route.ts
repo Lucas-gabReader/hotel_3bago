@@ -15,10 +15,18 @@ export async function GET() {
 export async function POST(req: Request) {
     try {
         const data = await req.json();
+
+        // Validate required fields
+        if (!data.numero || !data.tipo || !data.hotelId) {
+            return NextResponse.json({ error: 'Campos obrigatórios faltando' }, { status: 400 });
+        }
+
         const quarto = await prisma.quarto.create({
             data: {
-                ...data,
-                createdAt: new Date() // Set createdAt to the current date
+                numero: data.numero,
+                tipo: data.tipo,
+                hotelId: data.hotelId,
+                preco: data.preco || 0
             }
         });
         return NextResponse.json(quarto, { status: 201 });

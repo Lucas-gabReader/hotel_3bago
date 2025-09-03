@@ -16,20 +16,26 @@ export async function POST(req: Request) {
     try {
         const requestData = await req.json();
         console.log('POST request data:', requestData);
-        
+
         const { nomeHospede, email, dataInicio, dataFim, quartoId, hotelId } = requestData;
-        
+
+        // Calculate stay duration in days
+        const startDate = new Date(dataInicio);
+        const endDate = new Date(dataFim);
+        const stayDuration = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+
         const createData: any = {
             cliente: nomeHospede,
             quartoId,
             dataInicio,
-            dataFim
+            dataFim,
+            stayDuration
         };
-        
+
         // Only include fields that are provided
-        if (email !== undefined) createData.email = email;
+        if (email !== undefined) createData.email = String(email);
         if (hotelId !== undefined) createData.hotelId = hotelId;
-        
+
         const reserva = await prisma.reserva.create({
             data: createData
         });

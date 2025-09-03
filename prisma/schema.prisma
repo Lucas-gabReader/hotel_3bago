@@ -14,11 +14,12 @@ datasource db {
 }
 
 model Hotel {
-  id       Int @id @default(autoincrement())
-  nome     String
-  endereco String
-  quartos  Quarto[]
-  reservas Reserva[]
+  id        Int      @id @default(autoincrement())
+  nome      String
+  endereco  String
+  createdAt DateTime @default(now())
+  quartos   Quarto[]
+  reservas  Reserva[]
 }
 
 model Quarto{
@@ -29,22 +30,39 @@ model Quarto{
   hotelId   Int
   hotel     Hotel @relation(fields: [hotelId], references: [id])
   reservas  Reserva[]
-  dataInicio DateTime // Add start date
-  dataFim    DateTime // Add end date
+  createdAt DateTime @default(now())
+}
 
+model User {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  email     String   @unique
+  senha     String
+  role      UserRole @default(CLIENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  reservas  Reserva[]
+}
 
+enum UserRole {
+  ADMIN
+  CLIENT
 }
 
 model Reserva {
   id          Int @id @default(autoincrement())
+  createdAt   DateTime @default(now())
   cliente     String
   email       String
   dataInicio  DateTime
   dataFim     DateTime
+  stayDuration Int?
   quartoId    Int
   quarto      Quarto @relation(fields: [quartoId], references: [id])
   hotelId     Int
   hotel       Hotel  @relation(fields: [hotelId], references: [id])
+  userId      Int?
+  user        User?   @relation(fields: [userId], references: [id])
 }
 
 

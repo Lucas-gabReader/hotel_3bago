@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "public"."Hotel" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
