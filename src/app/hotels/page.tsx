@@ -36,15 +36,22 @@ export default function HotelsPage() {
 
   async function handleAddHotel() {
     if (!nome || !endereco) return alert("Preencha todos os campos!")
-    const res = await fetch("/api/hotels", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nome, endereco }),
-    })
-    if (res.ok) {
-      const novo = await res.json()
-      setHotels([...hotels, novo])
-      setNome(""); setEndereco("")
+    try {
+      const res = await fetch("/api/hotels", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nome, endereco }),
+      })
+      if (res.ok) {
+        const novo = await res.json()
+        setHotels([...hotels, novo])
+        setNome(""); setEndereco("")
+      } else {
+        const errorData = await res.json()
+        alert(errorData.error || "Erro ao adicionar hotel")
+      }
+    } catch (error) {
+      alert("Erro ao adicionar hotel")
     }
   }
 

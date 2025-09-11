@@ -31,12 +31,28 @@ export default function ReservasPage() {
 
   const [editId, setEditId] = useState<number | null>(null)
   const [editNomeHospede, setEditNomeHospede] = useState("")
+
+  // Ensure controlled input by defaulting to empty string
   const [editQuartoId, setEditQuartoId] = useState<number | null>(null)
 
   useEffect(() => {
     fetch("/api/quartos").then(res => res.json()).then(setQuartos)
     fetch("/api/reservas").then(res => res.json()).then(setReservas)
   }, [])
+
+  // Reset edit fields when editId changes
+  useEffect(() => {
+    if (editId !== null) {
+      const reserva = reservas.find(r => r.id === editId)
+      if (reserva) {
+        setEditNomeHospede(reserva.nomeHospede)
+        setEditQuartoId(reserva.quartoId)
+      }
+    } else {
+      setEditNomeHospede("")
+      setEditQuartoId(null)
+    }
+  }, [editId, reservas])
 
   async function handleAddReserva() {
     if (!nomeHospede || !quartoId || !dataInicio || !dataFim) return alert("Preencha todos os campos!")
@@ -121,7 +137,7 @@ export default function ReservasPage() {
               {reservas.map(r => (
                 <tr key={r.id} className="hover:bg-gray-100">
                   <td className="border-b p-2">{r.id}</td>
-                  <td className="border-b p-2">{editId === r.id ? <Input value={editNomeHospede} onChange={e => setEditNomeHospede(e.target.value)} /> : r.nomeHospede}</td>
+                  <td className="border-b p-2">{editId === r.id ? <Input value={editNomeHospede || ""} onChange={e => setEditNomeHospede(e.target.value)} /> : r.nomeHospede}</td>
                   <td className="border-b p-2">
                     {editId === r.id ?
                       <Select onValueChange={val => setEditQuartoId(val ? Number(val) : null)} value={editQuartoId?.toString() || ""}>

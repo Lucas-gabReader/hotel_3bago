@@ -24,17 +24,27 @@ export async function POST(req: Request) {
         const endDate = new Date(dataFim);
         const stayDuration = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
 
+        // Get hotelId from quarto if not provided
+        let finalHotelId = hotelId;
+        if (!finalHotelId) {
+            const quarto = await prisma.quarto.findUnique({
+                where: { id: quartoId },
+                select: { hotelId: true }
+            });
+            if (quarto) finalHotelId = quarto.hotelId;
+        }
+
         const createData: any = {
             cliente: nomeHospede,
             quartoId,
-            dataInicio,
-            dataFim,
+            dataInicio: startDate,
+            dataFim: endDate,
             stayDuration
         };
 
         // Only include fields that are provided
         if (email !== undefined) createData.email = String(email);
-        if (hotelId !== undefined) createData.hotelId = hotelId;
+        if (finalHotelId !== undefined) createData.hotelId = finalHotelId;
 
         const reserva = await prisma.reserva.create({
             data: createData
