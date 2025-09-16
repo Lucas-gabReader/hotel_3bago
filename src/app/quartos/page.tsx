@@ -18,6 +18,7 @@ type Quarto = {
     tipo: string
     hotelId: number
     hotelNome?: string
+    preco?: number
     createdAt: string
 }
   
@@ -31,7 +32,7 @@ export default function QuartosPage() {
     const [tipo, setTipo] = useState("")
     const [hotelId, setHotelId] = useState<number | null>(null)
 
-    // Persist selected hotelId in localStorage to keep selection on page revisit
+    // Permanecer o hotelId selecionado no localStorage para manter a seleção na revisita da página
     useEffect(() => {
       const savedHotelId = localStorage.getItem("selectedHotelId");
       if (savedHotelId) {
@@ -44,7 +45,7 @@ export default function QuartosPage() {
         localStorage.setItem("selectedHotelId", hotelId.toString());
       }
     }, [hotelId]);
-    const [preco, setPreco] = useState<number | null>(null) // Add state for price
+    const [preco, setPreco] = useState<number | null>(null) 
 
     const [editId, setEditId] = useState<number | null>(null)
     const [editNumero, setEditNumero] = useState("")
@@ -59,7 +60,20 @@ export default function QuartosPage() {
           return
         }
         fetch("/api/hotels").then(res => res.json()).then(setHotels)
-        fetch("/api/quartos").then(res => res.json()).then(setQuartos)
+        fetch("/api/quartos")
+          .then(res => res.json())
+          .then(data => {
+            const mappedQuartos = data.map((q: any) => ({
+              id: q.id,
+              numero: q.numero,
+              tipo: q.tipo,
+              hotelId: q.hotelId,
+              hotelNome: q.hotel?.nome,
+              preco: q.preco,
+              createdAt: q.createdAt
+            }))
+            setQuartos(mappedQuartos)
+          })
       }
     }, [user, loading, router])
 
@@ -69,7 +83,7 @@ export default function QuartosPage() {
       const res = await fetch("/api/quartos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ numero, tipo, hotelId, preco: preco || 0 }), // Removed dataInicio and dataFim
+        body: JSON.stringify({ numero, tipo, hotelId, preco: preco || 0 }),
       })
 
       if (res.ok) {
@@ -150,44 +164,46 @@ export default function QuartosPage() {
           <CardHeader><CardTitle>Quartos Cadastrados</CardTitle></CardHeader>
           <CardContent>
             <table className="w-full text-left border-collapse">
-              <thead>
-                <tr>
-                  <th className="border-b p-2">ID</th>
-                  <th className="border-b p-2">Número</th>
-                  <th className="border-b p-2">Tipo</th>
-                  <th className="border-b p-2">Hotel</th>
-                  <th className="border-b p-2">Criado em</th>
-                  <th className="border-b p-2">Ações</th>
+            <thead>
+              <tr>
+                <th className="border-b p-2">ID</th>
+                <th className="border-b p-2">Número</th>
+                <th className="border-b p-2">Tipo</th>
+                <th className="border-b p-2">Hotel</th>
+                <th className="border-b p-2">Preço</th>
+                <th className="border-b p-2">Criado em</th>
+                <th className="border-b p-2">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {quartos.map(q => (
+                <tr key={q.id} className="hover:bg-gray-100">
+                  <td className="border-b p-2">{q.id}</td>
+                  <td className="border-b p-2">{editId === q.id ? <Input value={editNumero} onChange={e => setEditNumero(e.target.value)} /> : q.numero}</td>
+                  <td className="border-b p-2">{editId === q.id ? <Input value={editTipo} onChange={e => setEditTipo(e.target.value)} /> : q.tipo}</td>
+                  <td className="border-b p-2">
+                    {editId === q.id ?
+                      <Select onValueChange={val => setEditHotelId(Number(val))} value={editHotelId?.toString() || ""}>
+                        <SelectTrigger><SelectValue placeholder="Escolha o hotel" /></SelectTrigger>
+                        <SelectContent>
+                          {hotels.map(h => <SelectItem key={h.id} value={h.id.toString()}>{h.nome}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      : q.hotelNome
+                    }
+                  </td>
+                  <td className="border-b p-2">{q.preco?.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) || "R$ 0,00"}</td>
+                  <td className="border-b p-2">{new Date(q.createdAt).toLocaleDateString("pt-BR") || "Data Inválida"}</td>
+                  <td className="border-b p-2 space-x-2">
+                    {editId === q.id ?
+                      <Button onClick={() => handleUpdateQuarto(q.id)}>Salvar</Button>
+                      : <Button onClick={() => {setEditId(q.id); setEditNumero(q.numero); setEditTipo(q.tipo); setEditHotelId(q.hotelId)}}>Editar</Button>
+                    }
+                    <Button onClick={() => handleDeleteQuarto(q.id)}>Excluir</Button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {quartos.map(q => (
-                  <tr key={q.id} className="hover:bg-gray-100">
-                    <td className="border-b p-2">{q.id}</td>
-                    <td className="border-b p-2">{editId === q.id ? <Input value={editNumero} onChange={e => setEditNumero(e.target.value)} /> : q.numero}</td>
-                    <td className="border-b p-2">{editId === q.id ? <Input value={editTipo} onChange={e => setEditTipo(e.target.value)} /> : q.tipo}</td>
-                    <td className="border-b p-2">
-                      {editId === q.id ?
-                        <Select onValueChange={val => setEditHotelId(Number(val))} value={editHotelId?.toString() || ""}>
-                          <SelectTrigger><SelectValue placeholder="Escolha o hotel" /></SelectTrigger>
-                          <SelectContent>
-                            {hotels.map(h => <SelectItem key={h.id} value={h.id.toString()}>{h.nome}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                        : q.hotelNome
-                      }
-                    </td>
-                    <td className="border-b p-2">{new Date(q.createdAt).toLocaleDateString("pt-BR") || "Data Inválida"}</td>
-                    <td className="border-b p-2 space-x-2">
-                      {editId === q.id ?
-                        <Button onClick={() => handleUpdateQuarto(q.id)}>Salvar</Button>
-                        : <Button onClick={() => {setEditId(q.id); setEditNumero(q.numero); setEditTipo(q.tipo); setEditHotelId(q.hotelId)}}>Editar</Button>
-                      }
-                      <Button onClick={() => handleDeleteQuarto(q.id)}>Excluir</Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
+              ))}
+            </tbody>
             </table>
           </CardContent>
         </Card>

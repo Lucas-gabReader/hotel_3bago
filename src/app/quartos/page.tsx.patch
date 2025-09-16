@@ -1,0 +1,136 @@
+const [tipo, setTipo] = useState("")
+const [hotelId, setHotelId] = useState<number | null>(null)
+=======
+
+const [numero, setNumero] = useState("")
+const [tipo, setTipo] = useState("")
+const [hotelId, setHotelId] = useState<number | null>(null)
+
+const [error, setError] = useState<string | null>(null)
+const [isLoading, setIsLoading] = useState<boolean>(true)
+>>>>>>> REPLACE
+
+<<<<<<< SEARCH
+useEffect(() => {
+  if (!loading) {
+    if (!user || user.role !== "ADMIN") {
+      router.push("/")
+      return
+    }
+    fetch("/api/hotels").then(res => res.json()).then(setHotels)
+    fetch("/api/quartos")
+      .then(res => res.json())
+      .then(data => {
+        const mappedQuartos = data.map((q: any) => ({
+          id: q.id,
+          numero: q.numero,
+          tipo: q.tipo,
+          hotelId: q.hotelId,
+          hotelNome: q.hotel?.nome,
+          preco: q.preco,
+          createdAt: q.createdAt
+        }))
+        setQuartos(mappedQuartos)
+      })
+  }
+}, [user, loading, router])
+=======
+
+useEffect(() => {
+  if (!loading) {
+    if (!user || user.role !== "ADMIN") {
+      router.push("/")
+      return
+    }
+    setIsLoading(true)
+    setError(null)
+    fetch("/api/hotels")
+      .then(res => res.json())
+      .then(data => {
+        console.log("Hotels fetched:", data)
+        setHotels(data)
+      })
+      .catch(err => {
+        console.error("Error fetching hotels:", err)
+        setError("Erro ao carregar hotéis")
+      })
+    fetch("/api/quartos")
+      .then(res => res.json())
+      .then(data => {
+        console.log("Quartos fetched:", data)
+        const mappedQuartos = data.map((q: any) => ({
+          id: q.id,
+          numero: q.numero,
+          tipo: q.tipo,
+          hotelId: q.hotelId,
+          hotelNome: q.hotel?.nome,
+          preco: q.preco,
+          createdAt: q.createdAt
+        }))
+        setQuartos(mappedQuartos)
+        setIsLoading(false)
+      })
+      .catch(err => {
+        console.error("Error fetching quartos:", err)
+        setError("Erro ao carregar quartos")
+        setIsLoading(false)
+      })
+  }
+}, [user, loading, router])
+>>>>>>> REPLACE
+
+<<<<<<< SEARCH
+if (loading) {
+  return (
+    <div className="p-6">
+      <p>Carregando...</p>
+    </div>
+  )
+}
+
+if (!user || user.role !== "ADMIN") {
+  return (
+    <div className="p-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Acesso Negado</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>Você precisa ser um administrador para acessar esta página.</p>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+=======
+
+if (loading) {
+  return (
+    <div className="p-6">
+      <p>Carregando...</p>
+    </div>
+  )
+}
+
+if (error) {
+  return (
+    <div className="p-6">
+      <p className="text-red-600">{error}</p>
+    </div>
+  )
+}
+
+if (!user || user.role !== "ADMIN") {
+  return (
+    <div className="p-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Acesso Negado</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>Você precisa ser um administrador para acessar esta página.</p>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}

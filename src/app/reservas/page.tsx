@@ -14,6 +14,7 @@ type Quarto = {
 type Reserva = {
   id: number
   nomeHospede: string
+  email?: string
   quartoId: number
   quartoNumero?: string
   createdAt: string
@@ -25,64 +26,87 @@ export default function ReservasPage() {
   const [reservas, setReservas] = useState<Reserva[]>([])
 
   const [nomeHospede, setNomeHospede] = useState("")
+  const [email, setEmail] = useState("")
   const [quartoId, setQuartoId] = useState<number | null>(null)
   const [dataInicio, setDataInicio] = useState<string>("")
   const [dataFim, setDataFim] = useState<string>("")
 
   const [editId, setEditId] = useState<number | null>(null)
   const [editNomeHospede, setEditNomeHospede] = useState("")
+  const [editEmail, setEditEmail] = useState("")
 
-  // Ensure controlled input by defaulting to empty string
   const [editQuartoId, setEditQuartoId] = useState<number | null>(null)
 
   useEffect(() => {
     fetch("/api/quartos").then(res => res.json()).then(setQuartos)
-    fetch("/api/reservas").then(res => res.json()).then(setReservas)
+    fetch("/api/reservas")
+      .then(res => res.json())
+      .then(data => {
+        
+        const mappedReservas = data.map((r: any) => ({
+          id: r.id,
+          nomeHospede: r.cliente, 
+          email: r.email,
+          quartoId: r.quartoId,
+          quartoNumero: r.quarto?.numero, 
+          createdAt: r.createdAt,
+          stayDuration: r.stayDuration
+        }))
+        setReservas(mappedReservas)
+      })
   }, [])
 
-  // Reset edit fields when editId changes
+  
   useEffect(() => {
     if (editId !== null) {
       const reserva = reservas.find(r => r.id === editId)
       if (reserva) {
         setEditNomeHospede(reserva.nomeHospede)
+        setEditEmail(reserva.email || "")
         setEditQuartoId(reserva.quartoId)
       }
     } else {
       setEditNomeHospede("")
+      setEditEmail("")
       setEditQuartoId(null)
     }
   }, [editId, reservas])
 
-  async function handleAddReserva() {
-    if (!nomeHospede || !quartoId || !dataInicio || !dataFim) return alert("Preencha todos os campos!")
-    const res = await fetch("/api/reservas", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-          nomeHospede, 
-          quartoId, 
-          dataInicio: new Date(dataInicio).toISOString(), 
-          dataFim: new Date(dataFim).toISOString(),
-          email: "" // Add empty email to avoid missing field error
-      }),
-    })
-    if (res.ok) {
-      const novo = await res.json()
-      setReservas([...reservas, { ...novo, quartoNumero: quartos.find(q => q.id === quartoId)?.numero }])
-      setNomeHospede(""); setQuartoId(null); setDataInicio(""); setDataFim("");
-    } else alert("Erro ao adicionar reserva.")
-  }
+async function handleAddReserva() {
+  if (!nomeHospede || !quartoId || !dataInicio || !dataFim) return alert("Preencha todos os campos!")
+  const res = await fetch("/api/reservas", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ 
+        nomeHospede, 
+        quartoId, 
+        dataInicio: new Date(dataInicio).toISOString(), 
+        dataFim: new Date(dataFim).toISOString(),
+        email: email 
+    }),
+  })
+  if (res.ok) {
+    const novo = await res.json()
+    const mappedNovo = {
+      ...novo,
+      nomeHospede: nomeHospede,
+      email: email,
+      quartoNumero: quartos.find(q => q.id === quartoId)?.numero
+    }
+    setReservas([...reservas, mappedNovo])
+    setNomeHospede(""); setQuartoId(null); setDataInicio(""); setDataFim("");
+  } else alert("Erro ao adicionar reserva.")
+}
 
   async function handleUpdateReserva(id: number) {
     if (!editNomeHospede || !editQuartoId) return alert("Preencha todos os campos!")
     const res = await fetch(`/api/reservas/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nomeHospede: editNomeHospede, quartoId: editQuartoId }),
+      body: JSON.stringify({ nomeHospede: editNomeHospede, email: editEmail, quartoId: editQuartoId }),
     })
     if (res.ok) {
-      setReservas(reservas.map(r => r.id === id ? { ...r, nomeHospede: editNomeHospede, quartoId: editQuartoId, quartoNumero: quartos.find(q => q.id === editQuartoId)?.numero } : r))
+      setReservas(reservas.map(r => r.id === id ? { ...r, nomeHospede: editNomeHospede, email: editEmail, quartoId: editQuartoId, quartoNumero: quartos.find(q => q.id === editQuartoId)?.numero } : r))
       setEditId(null)
     } else {
       const errorData = await res.json()
@@ -107,6 +131,7 @@ export default function ReservasPage() {
         <CardHeader><CardTitle>Adicionar Reserva</CardTitle></CardHeader>
         <CardContent className="space-y-2">
           <Input placeholder="Nome do hóspede" value={nomeHospede} onChange={e => setNomeHospede(e.target.value)} />
+          <Input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
           <Select onValueChange={val => setQuartoId(val ? Number(val) : null)} value={quartoId?.toString() || ""}>
             <SelectTrigger><SelectValue placeholder="Escolha o quarto" /></SelectTrigger>
             <SelectContent>
@@ -125,19 +150,21 @@ export default function ReservasPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr>
-                <th className="border-b p-2">ID</th>
-                <th className="border-b p-2">Hóspede</th>
-                <th className="border-b p-2">Quarto</th>
-                <th className="border-b p-2">Duração (dias)</th>
-                <th className="border-b p-2">Criado em</th>
-                <th className="border-b p-2">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {reservas.map(r => (
-                <tr key={r.id} className="hover:bg-gray-100">
-                  <td className="border-b p-2">{r.id}</td>
+                  <th className="border-b p-2">ID</th>
+                  <th className="border-b p-2">Hóspede</th>
+                  <th className="border-b p-2">Email</th>
+                  <th className="border-b p-2">Quarto</th>
+                  <th className="border-b p-2">Duração (dias)</th>
+                  <th className="border-b p-2">Criado em</th>
+                  <th className="border-b p-2">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {reservas.map(r => (
+                  <tr key={r.id} className="hover:bg-gray-100">
+                    <td className="border-b p-2">{r.id}</td>
                   <td className="border-b p-2">{editId === r.id ? <Input value={editNomeHospede || ""} onChange={e => setEditNomeHospede(e.target.value)} /> : r.nomeHospede}</td>
+                  <td className="border-b p-2">{editId === r.id ? <Input value={editEmail || ""} onChange={e => setEditEmail(e.target.value)} /> : r.email}</td>
                   <td className="border-b p-2">
                     {editId === r.id ?
                       <Select onValueChange={val => setEditQuartoId(val ? Number(val) : null)} value={editQuartoId?.toString() || ""}>
@@ -149,19 +176,19 @@ export default function ReservasPage() {
                       : r.quartoNumero
                     }
                   </td>
-                  <td className="border-b p-2">{r.stayDuration}</td>
-                  <td className="border-b p-2">{new Date(r.createdAt).toLocaleDateString()}</td>
-                  <td className="border-b p-2 space-x-2">
-                    {editId === r.id ?
-                      <Button onClick={() => handleUpdateReserva(r.id)}>Salvar</Button>
-                      : <Button onClick={() => {setEditId(r.id); setEditNomeHospede(r.nomeHospede); setEditQuartoId(r.quartoId)}}>Editar</Button>
-                    }
-                    <Button onClick={() => handleDeleteReserva(r.id)}>Excluir</Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    <td className="border-b p-2">{r.stayDuration}</td>
+                    <td className="border-b p-2">{new Date(r.createdAt).toLocaleDateString()}</td>
+                    <td className="border-b p-2 space-x-2">
+                      {editId === r.id ?
+                        <Button onClick={() => handleUpdateReserva(r.id)}>Salvar</Button>
+                        : <Button onClick={() => {setEditId(r.id); setEditNomeHospede(r.nomeHospede); setEditQuartoId(r.quartoId)}}>Editar</Button>
+                      }
+                      <Button onClick={() => handleDeleteReserva(r.id)}>Excluir</Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
         </CardContent>
       </Card>
     </div>

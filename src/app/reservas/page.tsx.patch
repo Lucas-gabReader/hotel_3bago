@@ -1,0 +1,236 @@
+const [reservas, setReservas] = useState<Reserva[]>([])
+
+const [nomeHospede, setNomeHospede] = useState("")
+const [email, setEmail] = useState("")
+const [quartoId, setQuartoId] = useState<number | null>(null)
+const [dataInicio, setDataInicio] = useState<string>("")
+const [dataFim, setDataFim] = useState<string>("")
+
+const [editId, setEditId] = useState<number | null>(null)
+const [editNomeHospede, setEditNomeHospede] = useState("")
+const [editEmail, setEditEmail] = useState("")
+
+const [editQuartoId, setEditQuartoId] = useState<number | null>(null)
+=======
+
+const [quartos, setQuartos] = useState<Quarto[]>([])
+const [reservas, setReservas] = useState<Reserva[]>([])
+
+const [error, setError] = useState<string | null>(null)
+const [isLoading, setIsLoading] = useState<boolean>(true)
+
+const [nomeHospede, setNomeHospede] = useState("")
+const [email, setEmail] = useState("")
+const [quartoId, setQuartoId] = useState<number | null>(null)
+const [dataInicio, setDataInicio] = useState<string>("")
+const [dataFim, setDataFim] = useState<string>("")
+
+const [editId, setEditId] = useState<number | null>(null)
+const [editNomeHospede, setEditNomeHospede] = useState("")
+const [editEmail, setEditEmail] = useState("")
+
+const [editQuartoId, setEditQuartoId] = useState<number | null>(null)
+>>>>>>> REPLACE
+
+<<<<<<< SEARCH
+useEffect(() => {
+  fetch("/api/quartos").then(res => res.json()).then(setQuartos)
+  fetch("/api/reservas")
+    .then(res => res.json())
+    .then(data => {
+      
+      const mappedReservas = data.map((r: any) => ({
+        id: r.id,
+        nomeHospede: r.cliente, 
+        email: r.email,
+        quartoId: r.quartoId,
+        quartoNumero: r.quarto?.numero, 
+        createdAt: r.createdAt,
+        stayDuration: r.stayDuration
+      }))
+      setReservas(mappedReservas)
+    })
+}, [])
+=======
+
+useEffect(() => {
+  setIsLoading(true)
+  setError(null)
+  fetch("/api/quartos")
+    .then(res => res.json())
+    .then(data => {
+      console.log("Quartos fetched:", data)
+      setQuartos(data)
+    })
+    .catch(err => {
+      console.error("Error fetching quartos:", err)
+      setError("Erro ao carregar quartos")
+    })
+  fetch("/api/reservas")
+    .then(res => res.json())
+    .then(data => {
+      console.log("Reservas fetched:", data)
+      const mappedReservas = data.map((r: any) => ({
+        id: r.id,
+        nomeHospede: r.cliente, 
+        email: r.email,
+        quartoId: r.quartoId,
+        quartoNumero: r.quarto?.numero, 
+        createdAt: r.createdAt,
+        stayDuration: r.stayDuration
+      }))
+      setReservas(mappedReservas)
+      setIsLoading(false)
+    })
+    .catch(err => {
+      console.error("Error fetching reservas:", err)
+      setError("Erro ao carregar reservas")
+      setIsLoading(false)
+    })
+}, [])
+>>>>>>> REPLACE
+
+<<<<<<< SEARCH
+return (
+  <div className="p-6 space-y-6">
+    <Card className="max-w-md">
+      <CardHeader><CardTitle>Adicionar Reserva</CardTitle></CardHeader>
+      <CardContent className="space-y-2">
+        <Input placeholder="Nome do hóspede" value={nomeHospede} onChange={e => setNomeHospede(e.target.value)} />
+        <Input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
+        <Select onValueChange={val => setQuartoId(val ? Number(val) : null)} value={quartoId?.toString() || ""}>
+          <SelectTrigger><SelectValue placeholder="Escolha o quarto" /></SelectTrigger>
+          <SelectContent>
+            {quartos.map(q => <SelectItem key={q.id} value={q.id.toString()}>{q.numero} - {q.hotelNome}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Input type="date" placeholder="Data de Início" value={dataInicio} onChange={e => setDataInicio(e.target.value)} />
+        <Input type="date" placeholder="Data de Fim" value={dataFim} onChange={e => setDataFim(e.target.value)} />
+        <Button onClick={handleAddReserva}>Adicionar</Button>
+      </CardContent>
+    </Card>
+
+    <Card>
+      <CardHeader><CardTitle>Reservas Cadastradas</CardTitle></CardHeader>
+      <CardContent>
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr>
+                <th className="border-b p-2">ID</th>
+                <th className="border-b p-2">Hóspede</th>
+                <th className="border-b p-2">Email</th>
+                <th className="border-b p-2">Quarto</th>
+                <th className="border-b p-2">Duração (dias)</th>
+                <th className="border-b p-2">Criado em</th>
+                <th className="border-b p-2">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {reservas.map(r => (
+                <tr key={r.id} className="hover:bg-gray-100">
+                  <td className="border-b p-2">{r.id}</td>
+                <td className="border-b p-2">{editId === r.id ? <Input value={editNomeHospede || ""} onChange={e => setEditNomeHospede(e.target.value)} /> : r.nomeHospede}</td>
+                <td className="border-b p-2">{editId === r.id ? <Input value={editEmail || ""} onChange={e => setEditEmail(e.target.value)} /> : r.email}</td>
+                <td className="border-b p-2">
+                  {editId === r.id ?
+                    <Select onValueChange={val => setEditQuartoId(val ? Number(val) : null)} value={editQuartoId?.toString() || ""}>
+                      <SelectTrigger><SelectValue placeholder="Escolha o quarto" /></SelectTrigger>
+                      <SelectContent>
+                        {quartos.map(q => <SelectItem key={q.id} value={q.id.toString()}>{q.numero} - {q.hotelNome}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    : r.quartoNumero
+                  }
+                </td>
+                <td className="border-b p-2">{r.stayDuration}</td>
+                <td className="border-b p-2">{new Date(r.createdAt).toLocaleDateString()}</td>
+                <td className="border-b p-2 space-x-2">
+                  {editId === r.id ?
+                    <Button onClick={() => handleUpdateReserva(r.id)}>Salvar</Button>
+                    : <Button onClick={() => {setEditId(r.id); setEditNomeHospede(r.nomeHospede); setEditQuartoId(r.quartoId)}}>Editar</Button>
+                  }
+                  <Button onClick={() => handleDeleteReserva(r.id)}>Excluir</Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </CardContent>
+    </Card>
+  </div>
+)
+=======
+return (
+  <div className="p-6 space-y-6">
+    {isLoading && <p>Carregando...</p>}
+    {error && <p className="text-red-600">{error}</p>}
+    {!isLoading && !error && (
+      <>
+        <Card className="max-w-md">
+          <CardHeader><CardTitle>Adicionar Reserva</CardTitle></CardHeader>
+          <CardContent className="space-y-2">
+            <Input placeholder="Nome do hóspede" value={nomeHospede} onChange={e => setNomeHospede(e.target.value)} />
+            <Input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
+            <Select onValueChange={val => setQuartoId(val ? Number(val) : null)} value={quartoId?.toString() || ""}>
+              <SelectTrigger><SelectValue placeholder="Escolha o quarto" /></SelectTrigger>
+              <SelectContent>
+                {quartos.map(q => <SelectItem key={q.id} value={q.id.toString()}>{q.numero} - {q.hotelNome}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Input type="date" placeholder="Data de Início" value={dataInicio} onChange={e => setDataInicio(e.target.value)} />
+            <Input type="date" placeholder="Data de Fim" value={dataFim} onChange={e => setDataFim(e.target.value)} />
+            <Button onClick={handleAddReserva}>Adicionar</Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader><CardTitle>Reservas Cadastradas</CardTitle></CardHeader>
+          <CardContent>
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr>
+                    <th className="border-b p-2">ID</th>
+                    <th className="border-b p-2">Hóspede</th>
+                    <th className="border-b p-2">Email</th>
+                    <th className="border-b p-2">Quarto</th>
+                    <th className="border-b p-2">Duração (dias)</th>
+                    <th className="border-b p-2">Criado em</th>
+                    <th className="border-b p-2">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reservas.map(r => (
+                    <tr key={r.id} className="hover:bg-gray-100">
+                      <td className="border-b p-2">{r.id}</td>
+                    <td className="border-b p-2">{editId === r.id ? <Input value={editNomeHospede || ""} onChange={e => setEditNomeHospede(e.target.value)} /> : r.nomeHospede}</td>
+                    <td className="border-b p-2">{editId === r.id ? <Input value={editEmail || ""} onChange={e => setEditEmail(e.target.value)} /> : r.email}</td>
+                    <td className="border-b p-2">
+                      {editId === r.id ?
+                        <Select onValueChange={val => setEditQuartoId(val ? Number(val) : null)} value={editQuartoId?.toString() || ""}>
+                          <SelectTrigger><SelectValue placeholder="Escolha o quarto" /></SelectTrigger>
+                          <SelectContent>
+                            {quartos.map(q => <SelectItem key={q.id} value={q.id.toString()}>{q.numero} - {q.hotelNome}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                        : r.quartoNumero
+                      }
+                    </td>
+                    <td className="border-b p-2">{r.stayDuration}</td>
+                    <td className="border-b p-2">{new Date(r.createdAt).toLocaleDateString()}</td>
+                    <td className="border-b p-2 space-x-2">
+                      {editId === r.id ?
+                        <Button onClick={() => handleUpdateReserva(r.id)}>Salvar</Button>
+                        : <Button onClick={() => {setEditId(r.id); setEditNomeHospede(r.nomeHospede); setEditQuartoId(r.quartoId)}}>Editar</Button>
+                      }
+                      <Button onClick={() => handleDeleteReserva(r.id)}>Excluir</Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </CardContent>
+        </Card>
+      </>
+    )}
+  </div>
+)
